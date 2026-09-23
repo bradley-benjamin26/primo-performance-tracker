@@ -1,0 +1,41 @@
+timestamp_utc,search_term,rank,title
+2026-09-23T22:30:40.928982+00:00,test,1,Test.
+2026-09-23T22:30:40.928982+00:00,test,2,test
+2026-09-23T22:30:40.928982+00:00,test,3,The Test 
+2026-09-23T22:30:40.928982+00:00,test,4,The test 
+2026-09-23T22:30:40.928982+00:00,test,5,The test.
+2026-09-23T22:30:41.376203+00:00,history,1,History.
+2026-09-23T22:30:41.376203+00:00,history,2,History
+2026-09-23T22:30:41.376203+00:00,history,3,History 
+2026-09-23T22:30:41.376203+00:00,history,4,History.
+2026-09-23T22:30:41.376203+00:00,history,5,History.
+2026-09-23T22:30:42.183505+00:00,science,1,Science.
+2026-09-23T22:30:42.183505+00:00,science,2,Science
+2026-09-23T22:30:42.183505+00:00,science,3,Science.
+2026-09-23T22:30:42.183505+00:00,science,4,Science 
+2026-09-23T22:30:42.183505+00:00,science,5,Science 
+2026-09-23T22:30:42.467431+00:00,maryland history,1,Maryland history 
+2026-09-23T22:30:42.467431+00:00,maryland history,2,Women of achievement in Maryland history 
+2026-09-23T22:30:42.467431+00:00,maryland history,3,Maryland history and culture bibliography.
+2026-09-23T22:30:42.467431+00:00,maryland history,4,Maryland history notes.
+2026-09-23T22:30:42.467431+00:00,maryland history,5,Highlights of Maryland history as presented in the Darnell Young People's Museum: on exhibit at the Maryland Historical Society.
+2026-09-23T22:30:43.338814+00:00,math,1,Math 
+2026-09-23T22:30:43.338814+00:00,math,2,Math
+2026-09-23T22:30:43.338814+00:00,math,3,Math 
+2026-09-23T22:30:43.338814+00:00,math,4,"Differentiating math instruction, K-8 : common core mathematics in the 21st century classroom "
+2026-09-23T22:30:43.338814+00:00,math,5,String-Math 2011 
+2026-09-23T22:30:43.961836+00:00,Migration and Labor 1900,1,"Tramps and trade-union travelers : internal migration and organized labor in Gilded Age America, 1870-1900 "
+2026-09-23T22:30:43.961836+00:00,Migration and Labor 1900,2,Migration and Labor Market Adjustment 
+2026-09-23T22:30:43.961836+00:00,Migration and Labor 1900,3,Working on labor : essays in honor of Jan Lucassen 
+2026-09-23T22:30:43.961836+00:00,Migration and Labor 1900,4,Negro migration in 1916-17 
+2026-09-23T22:30:43.961836+00:00,Migration and Labor 1900,5,"The genesis of international mass migration : the British case, 1750-1900 "
+2026-09-23T22:30:44.510157+00:00,cats AND dogs,1,Scientific and humane issues in the use of random source dogs and cats in research 
+2026-09-23T22:30:44.510157+00:00,cats AND dogs,2,Scientific and humane issues in the use of random source dogs and cats in research 
+2026-09-23T22:30:44.510157+00:00,cats AND dogs,3,Sunday morning. Osgood short : like dogs and cats 
+2026-09-23T22:30:44.510157+00:00,cats AND dogs,4,Cats : a history 
+2026-09-23T22:30:44.510157+00:00,cats AND dogs,5,Deafness in dogs and cats 
+2026-09-23T22:30:45.068504+00:00,saltwater encroachment AND climate change,1,Simulation of salinity intrusion along the Georgia and South Carolina coasts using climate-change scenarios 
+2026-09-23T22:30:45.068504+00:00,saltwater encroachment AND climate change,2,Simulation of salinity intrusion along the Georgia and South Carolina coasts using climate-change scenarios 
+2026-09-23T22:30:45.068504+00:00,saltwater encroachment AND climate change,3,"Simulation of water-table and freshwater/saltwater interface response to climate-change-driven sea-level rise and changes in recharge at Fire Island National Seashore, New York "
+2026-09-23T22:30:45.068504+00:00,saltwater encroachment AND climate change,4,"Simulation of water-table and freshwater/saltwater interface response to climate-change-driven sea-level rise and changes in recharge at Fire Island National Seashore, New York "
+2026-09-23T22:30:45.068504+00:00,saltwater encroachment AND climate change,5,Sudden spring : stories of adaptation in a climate-changed South 
