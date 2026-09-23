@@ -6,7 +6,6 @@ API. Hitting that API directly avoids needing a browser.
 """
 import csv
 import datetime
-import os
 import sys
 from pathlib import Path
 
@@ -37,8 +36,11 @@ BASE_PARAMS = {
     "show_performance": "true",
 }
 
+# How many top results to capture per search, for eyeballing whether odd results show up.
+RESULTS_PER_TERM = 5
+
 # Search terms to rotate through on every run. Edit this list to change what gets sampled.
-SEARCH_TERMS = ["test", "history", "science", "a"]
+SEARCH_TERMS = ["test", "history", "science", "maryland history", "math", "Migration and Labor 1900", "cats AND dogs", "saltwater encroachment AND climate change"]
 
 REQUEST_TIMEOUT = 30
 
@@ -67,13 +69,17 @@ INFO_FIELDS = ["totalResultsLocal", "totalResultsPC", "total", "first", "last"]
 
 FIELDNAMES = ["timestamp_utc", "search_term"] + INFO_FIELDS + TIMELOG_FIELDS
 
+RESULT_FIELDNAMES = ["timestamp_utc", "search_term", "rank", "title"]
+
 DATA_FILE = Path(__file__).parent / "data" / "performance_log.csv"
+RESULTS_FILE = Path(__file__).parent / "data" / "results_log.csv"
 
 
 def fetch_performance(search_term: str) -> dict:
     """Query the Primo search API for one term and return its parsed JSON body."""
     params = dict(BASE_PARAMS)
     params["q"] = f"any,contains,{search_term}"
+    params["limit"] = str(RESULTS_PER_TERM)
     response = requests.get(API_URL, params=params, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     return response.json()
@@ -93,33 +99,54 @@ def build_row(search_term: str, payload: dict, now: datetime.datetime = None) ->
     return row
 
 
-def append_rows(rows: list, path: Path = DATA_FILE) -> None:
-    """Append rows to the CSV log, writing the header first if the file is new."""
+def build_result_rows(search_term: str, payload: dict, now: datetime.datetime = None) -> list:
+    """Flatten the top N returned docs into one CSV row per result, for spotting odd results."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    rows = []
+    for rank, doc in enumerate(payload.get("docs", []), start=1):
+        display = doc.get("pnx", {}).get("display", {})
+        rows.append(
+            {
+                "timestamp_utc": now.isoformat(),
+                "search_term": search_term,
+                "rank": rank,
+                "title": "; ".join(display.get("title", [])),
+            }
+        )
+    return rows
+
+
+def append_rows(rows: list, path: Path, fieldnames: list) -> None:
+    """Append rows to a CSV log, writing the header first if the file is new."""
     path.parent.mkdir(parents=True, exist_ok=True)
     write_header = not path.exists() or path.stat().st_size == 0
     with open(path, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         if write_header:
             writer.writeheader()
         for row in rows:
             writer.writerow(row)
 
 
-def run(search_terms: list = None) -> list:
-    """Fetch performance data for each search term and append it to the CSV log."""
+def run(search_terms: list = None) -> tuple:
+    """Fetch performance and top-result data for each search term and log both to CSV."""
     search_terms = search_terms or SEARCH_TERMS
-    rows = []
+    perf_rows = []
+    result_rows = []
     for term in search_terms:
         try:
             payload = fetch_performance(term)
         except requests.RequestException as exc:
             print(f"Request failed for term {term!r}: {exc}", file=sys.stderr)
             continue
-        rows.append(build_row(term, payload))
-    append_rows(rows)
-    return rows
+        perf_rows.append(build_row(term, payload))
+        result_rows.extend(build_result_rows(term, payload))
+    append_rows(perf_rows, DATA_FILE, FIELDNAMES)
+    append_rows(result_rows, RESULTS_FILE, RESULT_FIELDNAMES)
+    return perf_rows, result_rows
 
 
 if __name__ == "__main__":
-    result_rows = run()
-    print(f"Logged {len(result_rows)} row(s) to {DATA_FILE}")
+    performance_rows, top_result_rows = run()
+    print(f"Logged {len(performance_rows)} performance row(s) to {DATA_FILE}")
+    print(f"Logged {len(top_result_rows)} result row(s) to {RESULTS_FILE}")

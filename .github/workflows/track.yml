@@ -26,6 +26,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/performance_log.csv
+          git add data/performance_log.csv data/results_log.csv
           git diff --cached --quiet || git commit -m "Log Primo performance data"
           git push
