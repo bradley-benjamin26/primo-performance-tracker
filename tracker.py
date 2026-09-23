@@ -14,6 +14,17 @@ import requests
 
 API_URL = "https://usmai-umcp.primo.exlibrisgroup.com/primaws/rest/pub/pnxs"
 
+# Identifies this traffic as an automated monitor in server logs, distinct from real patron
+# searches, so it can be excluded from usage/"popular searches" reporting if needed.
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "primo-performance-tracker/1.0 "
+        "(+https://github.com/bradley-benjamin26/primo-performance-tracker; "
+        "automated uptime/latency monitor, not a patron search; "
+        "contact: bbradle1@umd.edu)"
+    )
+}
+
 # Static params matching the UMD Primo "Everything" search scope used in the discovery UI.
 BASE_PARAMS = {
     "blendFacetsSeparately": "false",
@@ -41,7 +52,7 @@ BASE_PARAMS = {
 RESULTS_PER_TERM = 5
 
 # Search terms to rotate through on every run. Edit this list to change what gets sampled.
-SEARCH_TERMS = ["test", "history", "science", "maryland history", "math", "Migration and Labor 1900", "cats AND dogs", "saltwater encroachment AND climate change"]
+SEARCH_TERMS = ["test", "history", "science", "maryland history", "linear algebra", "Migration and Labor 1900", "cats AND dogs", "saltwater encroachment AND climate change"]
 
 REQUEST_TIMEOUT = 30
 
@@ -98,7 +109,7 @@ def fetch_performance(search_term: str) -> requests.Response:
     params = dict(BASE_PARAMS)
     params["q"] = f"any,contains,{search_term}"
     params["limit"] = str(RESULTS_PER_TERM)
-    return requests.get(API_URL, params=params, timeout=REQUEST_TIMEOUT)
+    return requests.get(API_URL, params=params, headers=REQUEST_HEADERS, timeout=REQUEST_TIMEOUT)
 
 
 def load_previous_totals(path: Path = DATA_FILE) -> dict:
@@ -184,9 +195,27 @@ def append_rows(rows: list, path: Path, fieldnames: list) -> None:
             writer.writerow(row)
 
 
+def next_search_term() -> str:
+    """Pick the next term to sample, rotating through SEARCH_TERMS one at a time.
+
+    The rotation position is derived from how many rows are already logged, so state doesn't
+    need to be tracked separately - each scheduled run searches exactly one term instead of
+    battering the search API with the whole list every 30 minutes.
+    """
+    logged_count = 0
+    if DATA_FILE.exists():
+        with open(DATA_FILE, newline="") as f:
+            logged_count = sum(1 for _ in csv.DictReader(f))
+    return SEARCH_TERMS[logged_count % len(SEARCH_TERMS)]
+
+
 def run(search_terms: list = None) -> tuple:
-    """Fetch performance and top-result data for each search term and log both to CSV."""
-    search_terms = search_terms or SEARCH_TERMS
+    """Fetch performance and top-result data for each search term and log both to CSV.
+
+    With no `search_terms` given, only one term is searched per call (see next_search_term) to
+    keep this monitor's footprint on the production search system minimal.
+    """
+    search_terms = search_terms if search_terms is not None else [next_search_term()]
     previous_totals = load_previous_totals()
     perf_rows = []
     result_rows = []

@@ -197,3 +197,57 @@ def test_run_logs_non_200_response_without_crashing(monkeypatch):
     assert perf_rows[0]["http_status"] == 503
     assert perf_rows[0]["request_error"] == "HTTP 503"
     assert result_rows == []
+
+
+def test_next_search_term_rotates_with_logged_row_count(tmp_path, monkeypatch):
+    path = tmp_path / "log.csv"
+    monkeypatch.setattr(tracker, "DATA_FILE", path)
+    monkeypatch.setattr(tracker, "SEARCH_TERMS", ["a", "b", "c"])
+
+    with open(path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["search_term"])
+        writer.writeheader()
+        writer.writerows([{"search_term": "a"}, {"search_term": "b"}])  # 2 rows logged so far
+
+    assert tracker.next_search_term() == "c"  # index 2 % 3
+
+
+def test_next_search_term_with_no_log_file_starts_at_first_term(tmp_path, monkeypatch):
+    monkeypatch.setattr(tracker, "DATA_FILE", tmp_path / "missing.csv")
+    monkeypatch.setattr(tracker, "SEARCH_TERMS", ["a", "b", "c"])
+
+    assert tracker.next_search_term() == "a"
+
+
+def test_run_with_no_search_terms_only_searches_one_term(monkeypatch):
+    fetch_calls = []
+
+    def fake_fetch(term):
+        fetch_calls.append(term)
+        return FakeResponse(json_data=SAMPLE_PAYLOAD)
+
+    monkeypatch.setattr(tracker, "SEARCH_TERMS", ["a", "b", "c", "d"])
+    monkeypatch.setattr(tracker, "fetch_performance", fake_fetch)
+    monkeypatch.setattr(tracker, "next_search_term", lambda: "b")
+    monkeypatch.setattr(tracker, "append_rows", lambda rows, path, fieldnames: None)
+    monkeypatch.setattr(tracker, "load_previous_totals", lambda: {})
+
+    perf_rows, _ = tracker.run()
+
+    assert fetch_calls == ["b"]
+    assert len(perf_rows) == 1
+
+
+def test_fetch_performance_sends_identifying_user_agent(monkeypatch):
+    captured = {}
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        captured["headers"] = headers
+        return FakeResponse(json_data=SAMPLE_PAYLOAD)
+
+    monkeypatch.setattr(tracker.requests, "get", fake_get)
+
+    tracker.fetch_performance("test")
+
+    assert "primo-performance-tracker" in captured["headers"]["User-Agent"]
+    assert "not a patron search" in captured["headers"]["User-Agent"]
