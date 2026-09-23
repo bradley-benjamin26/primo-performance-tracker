@@ -52,7 +52,7 @@ BASE_PARAMS = {
 RESULTS_PER_TERM = 5
 
 # Search terms to rotate through on every run. Edit this list to change what gets sampled.
-SEARCH_TERMS = ["test", "history", "science", "maryland history", "linear algebra", "Migration and Labor 1900", "cats AND dogs", "saltwater encroachment AND climate change"]
+SEARCH_TERMS = ["project management AND software", "history of japanese art", "science", "maryland history", "linear algebra", "Migration and Labor 1900", "cats AND dogs", "saltwater encroachment AND climate change"]
 
 REQUEST_TIMEOUT = 30
 
