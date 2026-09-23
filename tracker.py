@@ -7,6 +7,7 @@ API. Hitting that API directly avoids needing a browser.
 import csv
 import datetime
 import sys
+import time
 from pathlib import Path
 
 import requests
@@ -67,7 +68,20 @@ TIMELOG_FIELDS = [
 
 INFO_FIELDS = ["totalResultsLocal", "totalResultsPC", "total", "first", "last"]
 
-FIELDNAMES = ["timestamp_utc", "search_term"] + INFO_FIELDS + TIMELOG_FIELDS
+# Fields describing the HTTP request itself, independent of what Primo's own timelog reports -
+# catches network/CDN slowness and outright failures (timeouts, non-200s) that show up nowhere
+# in the server-reported timings.
+REQUEST_FIELDS = ["client_latency_ms", "http_status", "request_error"]
+
+# A run-over-run change in `total` results for the same term at or above this percentage is
+# flagged as a possible anomaly (e.g. an index/connector outage silently dropping results).
+ANOMALY_PCT_THRESHOLD = 50
+
+ANOMALY_FIELDS = ["zero_results", "total_change_pct", "result_count_anomaly"]
+
+FIELDNAMES = (
+    ["timestamp_utc", "search_term"] + INFO_FIELDS + TIMELOG_FIELDS + REQUEST_FIELDS + ANOMALY_FIELDS
+)
 
 RESULT_FIELDNAMES = ["timestamp_utc", "search_term", "rank", "title"]
 
@@ -75,18 +89,43 @@ DATA_FILE = Path(__file__).parent / "data" / "performance_log.csv"
 RESULTS_FILE = Path(__file__).parent / "data" / "results_log.csv"
 
 
-def fetch_performance(search_term: str) -> dict:
-    """Query the Primo search API for one term and return its parsed JSON body."""
+def fetch_performance(search_term: str) -> requests.Response:
+    """Query the Primo search API for one term and return the raw response.
+
+    Callers are responsible for checking response.ok / status_code themselves, since a non-200
+    response is itself a signal worth logging rather than an exception to swallow.
+    """
     params = dict(BASE_PARAMS)
     params["q"] = f"any,contains,{search_term}"
     params["limit"] = str(RESULTS_PER_TERM)
-    response = requests.get(API_URL, params=params, timeout=REQUEST_TIMEOUT)
-    response.raise_for_status()
-    return response.json()
+    return requests.get(API_URL, params=params, timeout=REQUEST_TIMEOUT)
 
 
-def build_row(search_term: str, payload: dict, now: datetime.datetime = None) -> dict:
-    """Flatten one API response's timelog/info data into a single CSV row."""
+def load_previous_totals(path: Path = DATA_FILE) -> dict:
+    """Read the most recently logged `total` result count per search term from the CSV log."""
+    if not path.exists():
+        return {}
+    totals = {}
+    with open(path, newline="") as f:
+        for row in csv.DictReader(f):
+            try:
+                totals[row["search_term"]] = int(row["total"])
+            except (KeyError, ValueError):
+                continue
+    return totals
+
+
+def build_row(
+    search_term: str,
+    payload: dict,
+    now: datetime.datetime = None,
+    client_latency_ms: float = "",
+    http_status="",
+    request_error: str = "",
+    previous_total: int = None,
+) -> dict:
+    """Flatten one API response's timelog/info data, request diagnostics, and anomaly
+    flags (vs. the previous logged run for this term) into a single CSV row."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     timelog = payload.get("timelog", {})
     info = payload.get("info", {})
@@ -96,6 +135,23 @@ def build_row(search_term: str, payload: dict, now: datetime.datetime = None) ->
         row[field] = info.get(field, "")
     for field in TIMELOG_FIELDS:
         row[field] = timelog.get(field, "")
+
+    row["client_latency_ms"] = client_latency_ms
+    row["http_status"] = http_status
+    row["request_error"] = request_error
+
+    total = info.get("total")
+    zero_results = total == 0
+    row["zero_results"] = zero_results
+
+    total_change_pct = ""
+    count_anomaly = False
+    if total is not None and previous_total:
+        total_change_pct = round(abs(total - previous_total) / previous_total * 100, 1)
+        count_anomaly = total_change_pct >= ANOMALY_PCT_THRESHOLD
+    row["total_change_pct"] = total_change_pct
+    row["result_count_anomaly"] = zero_results or count_anomaly
+
     return row
 
 
@@ -131,16 +187,38 @@ def append_rows(rows: list, path: Path, fieldnames: list) -> None:
 def run(search_terms: list = None) -> tuple:
     """Fetch performance and top-result data for each search term and log both to CSV."""
     search_terms = search_terms or SEARCH_TERMS
+    previous_totals = load_previous_totals()
     perf_rows = []
     result_rows = []
     for term in search_terms:
+        payload = {}
+        http_status = ""
+        request_error = ""
+        start = time.monotonic()
         try:
-            payload = fetch_performance(term)
+            response = fetch_performance(term)
+            http_status = response.status_code
+            if response.ok:
+                payload = response.json()
+            else:
+                request_error = f"HTTP {http_status}"
         except requests.RequestException as exc:
+            request_error = str(exc)
             print(f"Request failed for term {term!r}: {exc}", file=sys.stderr)
-            continue
-        perf_rows.append(build_row(term, payload))
-        result_rows.extend(build_result_rows(term, payload))
+        client_latency_ms = round((time.monotonic() - start) * 1000, 1)
+
+        perf_rows.append(
+            build_row(
+                term,
+                payload,
+                client_latency_ms=client_latency_ms,
+                http_status=http_status,
+                request_error=request_error,
+                previous_total=previous_totals.get(term),
+            )
+        )
+        if payload:
+            result_rows.extend(build_result_rows(term, payload))
     append_rows(perf_rows, DATA_FILE, FIELDNAMES)
     append_rows(result_rows, RESULTS_FILE, RESULT_FIELDNAMES)
     return perf_rows, result_rows

@@ -12,9 +12,16 @@ panel you see in the browser is just a rendering of JSON that's already returned
 underlying search API (`primaws/rest/pub/pnxs`). [tracker.py](tracker.py) calls that API
 directly for each term in `SEARCH_TERMS` and, per run, appends:
 
-- one row per term to `performance_log.csv`, containing `totalResultsLocal`, `totalResultsPC`,
-  `total`, and the `timelog` sub-timings Primo reports (`COMBINED_SEARCH_TIME`,
-  `PRIMA_LOCAL_SEARCH_TOTAL`, `PC_SEARCH_TIME_TOTAL`, Solr calls, DB retrieval, JSON building, etc.)
+- one row per term to `performance_log.csv`, containing:
+  - `totalResultsLocal`, `totalResultsPC`, `total`, and the `timelog` sub-timings Primo reports
+    (`COMBINED_SEARCH_TIME`, `PRIMA_LOCAL_SEARCH_TOTAL`, `PC_SEARCH_TIME_TOTAL`, Solr calls, DB
+    retrieval, JSON building, etc.) — all server-reported
+  - `client_latency_ms`, `http_status`, `request_error` — the *client-side* wall-clock time and
+    outcome of the request itself, which catches network/CDN slowness, timeouts, and non-200
+    responses that never show up in Primo's own self-reported timings
+  - `zero_results`, `total_change_pct`, `result_count_anomaly` — flags a term whose `total`
+    result count is 0, or has swung by `ANOMALY_PCT_THRESHOLD`% (default 50%) or more since the
+    last time that term was logged, as a possible sign of an index or connector outage
 - one row per top result (`RESULTS_PER_TERM`, default 5) to `results_log.csv`, containing just
   the term, rank, and title
 
