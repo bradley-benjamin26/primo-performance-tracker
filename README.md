@@ -1,6 +1,6 @@
 # primo-performance-tracker
 
-Polls the UMD Primo discovery search (`show_performance=true`) every 30 minutes via GitHub
+Polls the UMD Primo discovery search (`show_performance=true`) every 15 minutes via GitHub
 Actions and logs the server-side timing breakdown to [data/performance_log.csv](data/performance_log.csv),
 plus the titles of the top results to [data/results_log.csv](data/results_log.csv) so odd results
 are easy to spot over time.
@@ -12,7 +12,7 @@ panel you see in the browser is just a rendering of JSON that's already returned
 underlying search API (`primaws/rest/pub/pnxs`). [tracker.py](tracker.py) calls that API
 directly, searching **one term per run** - rotating through `SEARCH_TERMS` (based on how many
 rows are already logged, so no separate state needs to be tracked) rather than firing the whole
-list every 30 minutes - and appends:
+list every run - and appends:
 
 - one row per term to `performance_log.csv`, containing:
   - `totalResultsLocal`, `totalResultsPC`, `total`, and the `timelog` sub-timings Primo reports
@@ -43,7 +43,7 @@ searches exactly one term from that list, moving to the next on the following ru
 
 This hits the same production search API that patrons use, so it:
 
-- searches only one term per 30-minute run (see above) instead of a batch of terms, to keep its
+- searches only one term per run (see above) instead of a batch of terms, to keep its
   load on the system minimal
 - sends an identifying `User-Agent` (see `REQUEST_HEADERS` in [tracker.py](tracker.py)) so
   library staff reviewing search logs or "popular searches" usage reports can recognize and
@@ -56,12 +56,30 @@ search logs like any other API request, which is what the `User-Agent` is for.
 
 ## Scheduling
 
-[.github/workflows/track.yml](.github/workflows/track.yml) runs the script every 30 minutes via
-`cron: "*/30 * * * *"` and commits the updated CSV back to the repo. It can also be triggered
-manually from the Actions tab (`workflow_dispatch`).
+GitHub Actions' own `schedule` trigger is unreliable at sub-hourly frequency - in practice a
+`*/15 * * * *` cron on this repo ran only a few times a day, hours apart, instead of every 15
+minutes. GitHub Actions schedules are documented as best-effort and get deprioritized for
+low-activity/free-tier repos, so this isn't specific to this project's workflow config.
 
-Note: GitHub Actions schedules are best-effort and can be delayed during high load, so runs
-won't always land exactly on the 30-minute mark.
+The actual 15-minute cadence comes from an **external scheduler** (e.g.
+[cron-job.org](https://cron-job.org)) that calls the GitHub REST API every 15 minutes to fire a
+`workflow_dispatch` event directly:
+
+```
+POST https://api.github.com/repos/bradley-benjamin26/primo-performance-tracker/actions/workflows/track.yml/dispatches
+Authorization: Bearer <fine-grained PAT, scoped to this repo, Actions: read/write only>
+Accept: application/vnd.github+json
+X-GitHub-Api-Version: 2022-11-28
+Content-Type: application/json
+
+{"ref": "main"}
+```
+
+`workflow_dispatch`-triggered runs aren't subject to the same scheduling throttle as `schedule`
+events, so this is far more reliable for a tight interval. The `schedule: "*/15 * * * *"` cron
+in [.github/workflows/track.yml](.github/workflows/track.yml) is left in place only as a
+low-cost fallback in case the external scheduler goes down; it can also always be triggered
+manually from the Actions tab.
 
 ## Tests
 
