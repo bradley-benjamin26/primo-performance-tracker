@@ -654,3 +654,8 @@ timestamp_utc,search_term,rank,title
 2026-09-25T18:15:22.312555+00:00,cats AND dogs,3,Sunday morning. Osgood short : like dogs and cats 
 2026-09-25T18:15:22.312555+00:00,cats AND dogs,4,Cats : a history 
 2026-09-25T18:15:22.312555+00:00,cats AND dogs,5,Deafness in dogs and cats 
+2026-09-25T18:30:27.748073+00:00,saltwater encroachment AND climate change,1,Simulation of salinity intrusion along the Georgia and South Carolina coasts using climate-change scenarios 
+2026-09-25T18:30:27.748073+00:00,saltwater encroachment AND climate change,2,Simulation of salinity intrusion along the Georgia and South Carolina coasts using climate-change scenarios 
+2026-09-25T18:30:27.748073+00:00,saltwater encroachment AND climate change,3,"Simulation of water-table and freshwater/saltwater interface response to climate-change-driven sea-level rise and changes in recharge at Fire Island National Seashore, New York "
+2026-09-25T18:30:27.748073+00:00,saltwater encroachment AND climate change,4,"Simulation of water-table and freshwater/saltwater interface response to climate-change-driven sea-level rise and changes in recharge at Fire Island National Seashore, New York "
+2026-09-25T18:30:27.748073+00:00,saltwater encroachment AND climate change,5,Sudden spring : stories of adaptation in a climate-changed South 
