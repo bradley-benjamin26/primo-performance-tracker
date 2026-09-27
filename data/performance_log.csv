@@ -272,3 +272,4 @@ timestamp_utc,search_term,totalResultsLocal,totalResultsPC,total,first,last,COMB
 2026-09-27T02:15:24.959239+00:00,cats AND dogs,1323,64702,174980,1,5,436,143,29,39,74,35,1,10,427,389,38,0,429,0,1,803.3,200,,False,0.0,False
 2026-09-27T02:30:23.437108+00:00,saltwater encroachment AND climate change,9,1382,1458,1,5,351,184,29,91,63,31,2,9,308,265,43,0,344,0,0,652.3,200,,False,0.0,False
 2026-09-27T02:41:43.299048+00:00,project management AND software,5910,91079,194052,1,5,681,347,28,230,86,52,1,10,448,407,41,0,671,0,1,989.5,200,,False,0.0,False
+2026-09-27T02:45:21.973318+00:00,history of japanese art,4004,34919,88928,1,5,457,363,25,283,51,29,1,9,358,327,31,0,449,0,0,581.8,200,,False,0.0,False
