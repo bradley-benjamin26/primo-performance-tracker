@@ -997,3 +997,4 @@ timestamp_utc,search_term,totalResultsLocal,totalResultsPC,total,first,last,COMB
 2026-10-04T07:00:30.163186+00:00,maryland history,19593,66126,231359,1,5,545,422,39,292,85,22,2,23,390,346,44,1,531,0,0,724.7,200,,False,0.0,False
 2026-10-04T07:15:19.951345+00:00,linear algebra,,,,,,,,,,,,,,,,,,,,,267.7,200,Expecting value: line 1 column 1 (char 0),False,,False
 2026-10-04T07:30:27.663704+00:00,Migration and Labor 1900,282,520,3992,1,5,1323,454,65,159,212,96,49,31,493,420,73,1,1294,0,1,1618.2,200,,False,0.0,False
+2026-10-04T07:45:22.305294+00:00,cats AND dogs,1325,64755,175216,1,5,460,305,62,71,170,99,4,24,441,389,52,0,442,0,1,861.2,200,,False,0.0,False
