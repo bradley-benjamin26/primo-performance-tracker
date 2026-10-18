@@ -1216,3 +1216,4 @@ timestamp_utc,search_term,totalResultsLocal,totalResultsPC,total,first,last,COMB
 2026-10-18T04:51:16.662397+00:00,cats AND dogs,1328,63705,174332,1,5,951,243,43,34,154,78,2,24,549,480,69,1,934,0,1,1353.7,200,,False,0.0,False
 2026-10-18T09:14:55.539580+00:00,saltwater encroachment AND climate change,,,,,,,,,,,,,,,,,,,,,30170.7,,"HTTPSConnectionPool(host='usmai-umcp.primo.exlibrisgroup.com', port=443): Read timed out. (read timeout=30)",False,,False
 2026-10-18T13:18:55.444943+00:00,project management AND software,5940,89479,192733,1,5,756,430,33,296,101,64,1,11,747,710,37,0,749,0,0,1017.3,200,,False,0.0,False
+2026-10-18T16:39:16.044763+00:00,history of japanese art,4031,32313,86472,1,5,1062,1013,28,912,65,39,1,12,666,631,35,0,1053,0,0,1426.5,200,,False,0.0,False
