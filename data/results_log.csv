@@ -6049,3 +6049,8 @@ timestamp_utc,search_term,rank,title
 2026-10-18T04:51:16.662422+00:00,cats AND dogs,3,Sunday morning. Osgood short : like dogs and cats 
 2026-10-18T04:51:16.662422+00:00,cats AND dogs,4,Cats : a history 
 2026-10-18T04:51:16.662422+00:00,cats AND dogs,5,Deafness in dogs and cats 
+2026-10-18T13:18:55.444966+00:00,project management AND software,1,Project management 
+2026-10-18T13:18:55.444966+00:00,project management AND software,2,The project management tool kit : 100 tips and techniques for getting the job done right 
+2026-10-18T13:18:55.444966+00:00,project management AND software,3,Project management.
+2026-10-18T13:18:55.444966+00:00,project management AND software,4,Project management.
+2026-10-18T13:18:55.444966+00:00,project management AND software,5,Project management : case studies 
